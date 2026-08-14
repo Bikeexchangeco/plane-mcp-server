@@ -15,9 +15,19 @@ from plane_mcp.tools.registry import action_arguments
 logger = get_logger(__name__)
 
 
+#: Cross-cutting parameters accepted by every action of every tool, alongside
+#: whatever each action declares. `workspace` overrides the connection's default
+#: Plane workspace for one call (see `get_plane_client_context`); it is not part
+#: of any resource's own field set, so it is exempted here the same way `action`
+#: itself is.
+CROSS_CUTTING_ARGUMENTS = frozenset({"action", "workspace"})
+
+
 def stray_argument_error(action: str, arguments: dict, accepted: Collection[str]) -> str | None:
     """Error naming the arguments `action` does not take, or None when all are valid."""
-    stray = sorted(n for n, value in arguments.items() if n != "action" and value and n not in accepted)
+    stray = sorted(
+        n for n, value in arguments.items() if n not in CROSS_CUTTING_ARGUMENTS and value and n not in accepted
+    )
     if not stray:
         return None
     takes = ", ".join(sorted(accepted)) or "nothing else"

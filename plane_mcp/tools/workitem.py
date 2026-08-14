@@ -29,7 +29,7 @@ from plane.models.work_items import (
 )
 from pydantic import Field
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.pql_reference import PQL_FIELD_HINT
 from plane_mcp.toolkit import (
     Action,
@@ -242,8 +242,9 @@ def register(mcp: FastMCP) -> None:
         # Tri-state: False publishes a draft, unset leaves the flag alone.
         is_draft: bool | None = None,
         archive: bool = True,
+        workspace: WorkspaceOverride = "",
     ) -> WorkItem | WorkItemDetail | WorkItemSearch | dict[str, Any] | list[Any] | str | None:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if error := one_of("priority", priority, PRIORITIES):
             return error

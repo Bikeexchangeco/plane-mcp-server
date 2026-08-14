@@ -7,7 +7,7 @@ from typing import Literal
 from fastmcp import FastMCP
 from plane.models.work_items import CreateWorkItemLink, UpdateWorkItemLink, WorkItemLink
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import Action, build_annotations, build_description, missing, needs, page_params
 
 NAME = "workitem_link"
@@ -44,8 +44,9 @@ def register(mcp: FastMCP) -> None:
         url: str = "",
         cursor: str = "",
         per_page: int = 0,
+        workspace: WorkspaceOverride = "",
     ) -> WorkItemLink | list[WorkItemLink] | str | None:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if error := needs(action, project_id=project_id, workitem_id=workitem_id):
             return error

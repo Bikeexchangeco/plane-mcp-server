@@ -1,14 +1,34 @@
 """Plane client initialization for MCP server."""
 
 import os
-from typing import NamedTuple
+from typing import Annotated, NamedTuple
 
 from fastmcp.server.auth.auth import AccessToken
 from fastmcp.server.dependencies import get_access_token
 from fastmcp.utilities.logging import get_logger
 from plane import PlaneClient
+from pydantic import Field
 
 logger = get_logger(__name__)
+
+#: Shared parameter type for the optional per-call workspace override. One
+#: definition so its description cannot drift across the 28 tools that accept
+#: it; see `get_plane_client_context`. `middleware.CROSS_CUTTING_ARGUMENTS`
+#: exempts the name `workspace` from each action's own accepted-parameter
+#: check, the same way `action` itself is exempt -- it is not part of any
+#: resource's field set.
+WorkspaceOverride = Annotated[
+    str,
+    Field(
+        default="",
+        description=(
+            "Override this connection's default Plane workspace for this call only. "
+            "Pass a workspace slug to reach a different workspace than the one this "
+            "connection was configured for, as long as the same credential can see it. "
+            "Omit to use the connection's configured workspace."
+        ),
+    ),
+]
 
 
 class PlaneClientContext(NamedTuple):
@@ -18,7 +38,7 @@ class PlaneClientContext(NamedTuple):
     workspace_slug: str
 
 
-def get_plane_client_context() -> PlaneClientContext:
+def get_plane_client_context(workspace_slug: str = "") -> PlaneClientContext:
     """
     Initialize and return a PlaneClient instance with workspace context.
 
@@ -31,6 +51,13 @@ def get_plane_client_context() -> PlaneClientContext:
     - PLANE_INTERNAL_BASE_URL: Internal URL for Plane API (preferred for server-to-server calls)
     - PLANE_BASE_URL: Base URL for Plane API (fallback, default: https://api.plane.so)
 
+    Args:
+        workspace_slug: Optional per-call override. When supplied (non-empty), this
+            wins over the connection's header/env/OAuth-derived workspace slug --
+            lets a single MCP connection reach multiple workspaces one call at a
+            time, as long as the same credential can see all of them. Leave empty
+            to keep the existing single-workspace-per-connection behavior.
+
     Returns:
         PlaneClientContext containing configured PlaneClient instance and workspace slug
 
@@ -38,6 +65,7 @@ def get_plane_client_context() -> PlaneClientContext:
         ConfigurationError: If access token is not available or workspace slug is missing
     """
     base_url = os.getenv("PLANE_INTERNAL_BASE_URL") or os.getenv("PLANE_BASE_URL", "https://api.plane.so")
+    workspace_slug_override = workspace_slug
     workspace_slug = os.getenv("PLANE_WORKSPACE_SLUG", "")
 
     api_key = os.getenv("PLANE_API_KEY", "")
@@ -70,5 +98,5 @@ def get_plane_client_context() -> PlaneClientContext:
 
     return PlaneClientContext(
         client=client,
-        workspace_slug=workspace_slug,
+        workspace_slug=workspace_slug_override or workspace_slug,
     )

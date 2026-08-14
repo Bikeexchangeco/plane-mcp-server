@@ -7,7 +7,7 @@ from typing import Literal
 from fastmcp import FastMCP
 from plane.models.query_params import MemberListQueryParams
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import Action, build_annotations, build_description, missing, opt
 
 NAME = "member"
@@ -74,8 +74,9 @@ def register(mcp: FastMCP) -> None:
         order_by: str = "",
         cursor: str = "",
         per_page: int = 0,
+        workspace: WorkspaceOverride = "",
     ):
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if action == "me":
             return client.users.get_me()

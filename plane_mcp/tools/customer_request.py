@@ -12,7 +12,7 @@ from plane.models.customers import (
     UpdateCustomerRequest,
 )
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import Action, build_annotations, build_description, coerce_list, missing, opt, page_params
 
 NAME = "customer_request"
@@ -67,8 +67,9 @@ def register(mcp: FastMCP) -> None:
         query: str = "",
         cursor: str = "",
         per_page: int = 0,
+        workspace: WorkspaceOverride = "",
     ) -> CustomerRequest | PaginatedCustomerRequestResponse | str | None:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if not customer_id:
             return missing(action, "customer_id")

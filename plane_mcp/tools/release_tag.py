@@ -12,7 +12,7 @@ from plane.models.releases import (
     UpdateReleaseTag,
 )
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import Action, build_annotations, build_description, missing, opt, page_params
 
 NAME = "release_tag"
@@ -57,8 +57,9 @@ def register(mcp: FastMCP) -> None:
         git_tag: str = "",
         cursor: str = "",
         per_page: int = 0,
+        workspace: WorkspaceOverride = "",
     ) -> ReleaseTag | PaginatedReleaseTagResponse | str | None:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
         tags = client.releases.tags
 
         if action == "list":

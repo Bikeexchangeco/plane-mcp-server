@@ -20,7 +20,7 @@ from plane.models.initiatives import (
 )
 from plane.models.projects import PaginatedProjectResponse
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import (
     Action,
     build_annotations,
@@ -125,8 +125,9 @@ def register(mcp: FastMCP) -> None:
         project_ids: str = "",
         cursor: str = "",
         per_page: int = 0,
+        workspace: WorkspaceOverride = "",
     ) -> Initiative | list[Initiative] | dict[str, Any] | str | None:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if error := one_of("state", state, STATES):
             return error

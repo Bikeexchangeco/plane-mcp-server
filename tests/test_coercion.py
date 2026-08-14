@@ -182,7 +182,7 @@ def _invoke(tool: str, arguments: dict, module: str | None = None):
     if module:
         target = importlib.import_module(module)
         restore = (target, target.get_plane_client_context)
-        target.get_plane_client_context = lambda: (recorder, "acme")
+        target.get_plane_client_context = lambda workspace_slug="": (recorder, workspace_slug or "acme")
 
     async def run():
         async with Client(server_module.get_stdio_mcp()) as client:
@@ -260,3 +260,31 @@ def test_the_middleware_passes_through_when_coercion_raises(monkeypatch):
 
     assert "validation error" not in error, error
     assert recorded, "the tool never ran despite the pass-through"
+
+
+# --- workspace override -------------------------------------------------------
+
+
+def test_workspace_argument_overrides_the_connection_default():
+    """Passing `workspace` on a call reaches the SDK ahead of the connection default.
+
+    `_invoke`'s stand-in `get_plane_client_context` mirrors the real one: it
+    returns the passed-through `workspace_slug` when non-empty, else the
+    connection's own default ("acme" here). This is the one behavior every
+    resource module's call site exists to enable -- reaching a second
+    workspace from the same connection, one call at a time.
+    """
+    error, recorded = _invoke(
+        "cycle", {"action": "list", "project_id": "p", "workspace": "eng"}, "plane_mcp.tools.cycle"
+    )
+
+    assert "validation error" not in error, error
+    assert recorded.get("workspace_slug") == "eng"
+
+
+def test_workspace_argument_omitted_keeps_the_connection_default():
+    """No override supplied -- the call uses whatever the connection resolved."""
+    error, recorded = _invoke("cycle", {"action": "list", "project_id": "p"}, "plane_mcp.tools.cycle")
+
+    assert "validation error" not in error, error
+    assert recorded.get("workspace_slug") == "acme"

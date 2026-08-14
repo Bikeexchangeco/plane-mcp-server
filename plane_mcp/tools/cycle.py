@@ -18,7 +18,7 @@ from plane.models.enums import CycleStatusEnum
 from plane.models.query_params import CycleLiteListQueryParams, LiteListQueryParams
 from pydantic import Field
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.pql_reference import PQL_FIELD_HINT
 from plane_mcp.toolkit import (
     Action,
@@ -143,8 +143,9 @@ def register(mcp: FastMCP) -> None:
         cursor: str = "",
         per_page: int = 0,
         order_by: str = "",
+        workspace: WorkspaceOverride = "",
     ) -> Cycle | PaginatedCycleLiteResponse | PaginatedArchivedCycleResponse | dict[str, Any] | bool | str | None:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if not project_id:
             return missing(action, "project_id")

@@ -7,7 +7,7 @@ from typing import Literal
 from fastmcp import FastMCP
 from plane.models.workspaces import WorkspaceFeature
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import Action, build_annotations, build_description
 
 NAME = "workspace"
@@ -45,8 +45,9 @@ def register(mcp: FastMCP) -> None:
         customers: bool | None = None,
         wiki: bool | None = None,
         pi: bool | None = None,
+        workspace: WorkspaceOverride = "",
     ) -> WorkspaceFeature:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if action == "get_features":
             return client.workspaces.get_features(workspace_slug=workspace_slug)

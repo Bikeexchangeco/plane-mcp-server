@@ -18,7 +18,7 @@ from plane.models.releases import (
     UpdateReleaseChangelog,
 )
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import (
     Action,
     build_annotations,
@@ -151,8 +151,9 @@ def register(mcp: FastMCP) -> None:
         external_id: str = "",
         cursor: str = "",
         per_page: int = 0,
+        workspace: WorkspaceOverride = "",
     ) -> Release | PaginatedReleaseResponse | PaginatedReleaseWorkItemResponse | ReleaseChangelog | str | None:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if error := one_of("status", status, STATUSES):
             return error

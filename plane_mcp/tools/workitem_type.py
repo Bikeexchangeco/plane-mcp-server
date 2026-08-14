@@ -14,7 +14,7 @@ from plane.errors.errors import HttpError
 from plane.models.projects import ProjectFeature
 from plane.models.work_item_types import CreateWorkItemType, UpdateWorkItemType, WorkItemType
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import (
     WORK_ITEM_TYPES,
     Action,
@@ -156,8 +156,9 @@ def register(mcp: FastMCP) -> None:
         external_id: str = "",
         cursor: str = "",
         per_page: int = 0,
+        workspace: WorkspaceOverride = "",
     ) -> WorkItemType | list[WorkItemType] | str | None:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
         types, scope, id_kwarg = _scope_of(client, project_id)
 
         if action == "list":

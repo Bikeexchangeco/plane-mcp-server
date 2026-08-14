@@ -17,7 +17,7 @@ from plane.models.projects import (
 )
 from plane.models.query_params import ProjectLiteListQueryParams
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import Action, build_annotations, build_description, missing, needs, opt, plan_gated
 
 NAME = "project"
@@ -168,6 +168,7 @@ def register(mcp: FastMCP) -> None:
         cursor: str = "",
         per_page: int = 0,
         order_by: str = "",
+        workspace: WorkspaceOverride = "",
     ) -> (
         Project
         | PaginatedProjectLiteResponse
@@ -177,7 +178,7 @@ def register(mcp: FastMCP) -> None:
         | str
         | None
     ):
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if timezone and timezone not in TIMEZONES:
             return f"Error: {timezone!r} is not a recognised timezone."

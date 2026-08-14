@@ -22,7 +22,7 @@ from plane.models.work_items import (
     DependencyTypeEnum,
 )
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import (
     Action,
     build_annotations,
@@ -136,8 +136,9 @@ def register(mcp: FastMCP) -> None:
         is_default: bool | None = None,
         is_active: bool | None = None,
         is_dependency: bool = False,
+        workspace: WorkspaceOverride = "",
     ) -> Any:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if action == "list_definitions":
             return {

@@ -21,7 +21,7 @@ from plane.models.estimates import (
 )
 from plane.models.projects import Project
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import Action, build_annotations, build_description, missing, one_of, opt
 
 NAME = "project_estimate"
@@ -96,8 +96,9 @@ def register(mcp: FastMCP) -> None:
         last_used: bool = True,
         external_source: str = "",
         external_id: str = "",
+        workspace: WorkspaceOverride = "",
     ) -> Estimate | EstimatePoint | list[EstimatePoint] | Project | str | None:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if not project_id:
             return missing(action, "project_id")

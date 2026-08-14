@@ -7,7 +7,7 @@ from typing import Any, Literal
 from fastmcp import FastMCP
 from plane.models.work_items import PaginatedWorkItemActivityResponse, WorkItemActivity
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import Action, build_annotations, build_description, envelope, missing, needs, page_params
 
 NAME = "workitem_activity"
@@ -37,8 +37,9 @@ def register(mcp: FastMCP) -> None:
         activity_id: str = "",
         cursor: str = "",
         per_page: int = 0,
+        workspace: WorkspaceOverride = "",
     ) -> WorkItemActivity | dict[str, Any] | str:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if error := needs(action, project_id=project_id, workitem_id=workitem_id):
             return error

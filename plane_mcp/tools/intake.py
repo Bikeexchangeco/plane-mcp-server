@@ -13,7 +13,7 @@ from plane.models.intake import CreateIntakeWorkItem, IntakeWorkItem, UpdateInta
 from plane.models.query_params import PaginatedQueryParams, RetrieveQueryParams
 from plane.models.work_items import WorkItemForIntakeRequest
 
-from plane_mcp.client import get_plane_client_context
+from plane_mcp.client import WorkspaceOverride, get_plane_client_context
 from plane_mcp.toolkit import Action, as_params, build_annotations, build_description, envelope, missing, one_of, opt
 
 NAME = "intake"
@@ -71,8 +71,9 @@ def register(mcp: FastMCP) -> None:
         source_email: str = "",
         cursor: str = "",
         per_page: int = 0,
+        workspace: WorkspaceOverride = "",
     ) -> IntakeWorkItem | dict[str, Any] | str | None:
-        client, workspace_slug = get_plane_client_context()
+        client, workspace_slug = get_plane_client_context(workspace_slug=workspace)
 
         if not project_id:
             return missing(action, "project_id")
