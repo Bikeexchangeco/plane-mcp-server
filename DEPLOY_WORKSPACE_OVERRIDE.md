@@ -16,13 +16,18 @@ single-workspace connections keep working exactly as before).
 
 **This has already been built, tested, and deployed successfully against ONA's own
 Plane instance** (`plane.baristaai.cloud`, LXC 200, container name `plane`, host
-`pve4` / Proxmox at `192.168.1.40` / Tailscale `100.116.200.99`). That deployment is
+`pve5` / Proxmox, Tailscale `100.88.79.49`). That deployment is
 live and confirmed working with real workspace data (see "Verification already done
 on ONA" below).
 
+**Update (2026-09-29): the original host, `pve4`, was retired on 2026-09-14 and
+consolidated into `pve5`. LXC 200/201/202 (plane, plane-ideum, plane-geekboss) all
+now live on `pve5`. Every `pve4` / `100.116.200.99` reference below is stale — use
+`pve5` / `100.88.79.49` instead. Confirmed via `ssh pve5 "pct list"`.**
+
 **What's needed now**: repeat the exact same deployment on the separate iDeum Plane
 instance — `plane.ideum.co`, self-hosted in **LXC 201** (container name
-`plane-ideum`), on the **same Proxmox host** (`pve4`, reachable the same way as LXC
+`plane-ideum`), on the **same Proxmox host** (`pve5`, reachable the same way as LXC
 200 — see "How to reach the host" below). Same `makeplane/plane-aio-community`
 install, same `plane-mcp` compose setup, byte-for-byte identical
 `docker-compose.mcp.yml` to ONA's — this is not a new integration, it's the same
@@ -39,17 +44,24 @@ patch applied to a second, parallel instance.
   confirm with `docker images | grep workspace-override` inside LXC 201, it should
   already be there).
 - ✅ ONA's instance (LXC 200): fully deployed and verified in production.
-- ⬜ iDeum's instance (LXC 201): image loaded, **not yet tested or deployed**. This is
-  where you're picking up.
+- ✅ iDeum's instance (LXC 201): **also deployed** — confirmed 2026-09-29 via
+  `docker ps` showing `plane-mcp` running `plane-mcp-server:workspace-override` for
+  ~2 weeks already, `docker-compose.mcp.yml` on the box pinned to that image. The
+  "not yet tested or deployed" status below is stale; this section is kept for
+  historical/process reference only. (This same box was subsequently updated again
+  to `plane-mcp-server:apikey-oauth` on 2026-09-29 — see
+  `revisions/plane-mcp-apikey-oauth` if this repo later gains a docs/ directory, or
+  ask Local infra projects / felipe-bd for that handoff.)
 - ⚠️ No Personal Access Token for the iDeum Plane workspace was available in the
   session that did the ONA deployment, so the standalone test on LXC 201 could only
   be schema/boot-verified there, not fully round-trip tested with real data before
-  this handoff. See "Verification" below for what's still needed.
+  this handoff. This gap was closed 2026-09-29 during the apikey-oauth deployment,
+  using real PATs for both the `supermu` and `colombian-coffees` workspaces.
 
 ## How to reach the host
 
 ```bash
-ssh -i ~/.ssh/id_ed25519_mac_mini root@100.116.200.99   # this is the pve4 Proxmox host, via Tailscale
+ssh -i ~/.ssh/id_ed25519_mac_mini root@100.88.79.49   # this is the pve5 Proxmox host, via Tailscale (pve4 was retired 2026-09-14 and consolidated into pve5)
 pct exec 201 -- bash                                     # drops you into LXC 201 (plane-ideum)
 ```
 (`id_ed25519_mac_mini` is the same SSH key used for the other Proxmox-family hosts in
