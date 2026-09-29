@@ -9,6 +9,8 @@ from fastmcp.utilities.logging import get_logger
 from plane import PlaneClient
 from pydantic import Field
 
+from plane_mcp.auth.plane_apikey_oauth_provider import PlaneApiKeyAccessToken
+
 logger = get_logger(__name__)
 
 #: Shared parameter type for the optional per-call workspace override. One
@@ -80,7 +82,10 @@ def get_plane_client_context(workspace_slug: str = "") -> PlaneClientContext:
         workspace_slug = stored_access_token.claims.get("workspace_slug", "")
 
         # For API key auth methods, use api_key parameter; for OAuth, use access_token
-        if auth_method in ("api_key_env", "api_key_header"):
+        if isinstance(stored_access_token, PlaneApiKeyAccessToken):
+            # OAuth issued by this server: the bearer token is ours, the Plane key is bound to it.
+            api_key = stored_access_token.plane_api_key.get_secret_value()
+        elif auth_method in ("api_key_env", "api_key_header"):
             api_key = token
         else:
             access_token = token

@@ -67,6 +67,7 @@ Coercion runs before validation so an argument is judged by the value it repairs
 
 - `PlaneOAuthProvider` — Full OAuth flow with token verification against the Plane API.
 - `PlaneHeaderAuthProvider` — Simple header-based auth using `x-api-key` and `x-workspace-slug` headers.
+- `PlaneApiKeyOAuthProvider` — Used when `PLANE_MCP_OAUTH_MODE=api_key`. This server is its own OAuth 2.1 authorization server; its sign-in page (`/plane-login`) takes a Plane PAT + workspace slug, validates them, and binds them to opaque tokens it issues. For self-hosted Plane without OAuth apps. Tokens resolve to `PlaneApiKeyAccessToken`, whose `plane_api_key` field `client.py` uses.
 
 ### Tools (`tools/`)
 
@@ -121,4 +122,7 @@ Integration tests in `tests/test_integration.py` use `FastMCP.Client` with `Stre
 | `REDIS_HOST` / `REDIS_PORT` | http/sse (optional) | Token storage (falls back to in-memory) |
 | `PLANE_OAUTH_PROVIDER_*` | http/sse OAuth | OAuth client credentials and base URL |
 | `PLANE_OAUTH_ALLOWED_REDIRECT_URIS` | http/sse OAuth (optional) | Comma-separated redirect URI patterns appended to the built-in allowlist (onboard clients without a release) |
+| `PLANE_MCP_OAUTH_MODE` | http/sse (optional) | `plane` (default, proxy Plane OAuth apps) or `api_key` (own sign-in page asking for a PAT) |
+| `PLANE_MCP_AUTH_SECRET` | `api_key` mode | 32+ char secret; encrypts stored Plane keys |
+| `PLANE_MCP_DEFAULT_WORKSPACE` / `PLANE_MCP_ALLOWED_WORKSPACES` | `api_key` mode (optional) | Prefill / restrict the workspace slug on the sign-in page |
 | `LOG_USER_INFO` | all (optional, default: false) | When `true`, include user info (PII such as display name) in logs alongside the opaque user id |

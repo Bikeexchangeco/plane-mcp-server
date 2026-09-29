@@ -158,6 +158,41 @@ Self-hosting the server itself:
 | `PLANE_OAUTH_PROVIDER_*` | OAuth client credentials and base URL |
 | `MCP_PATH_PREFIX` | Path prefix for the HTTP routes, when mounted behind a proxy — `/plane` serves `/plane/http/mcp` |
 
+### OAuth without Plane OAuth apps (self-hosted Community Edition)
+
+The default OAuth mode proxies to Plane's own OAuth apps
+(`/auth/o/authorize-app/`, `/auth/o/token/`). Self-hosted editions without them
+answer 404 there, so OAuth-only clients such as claude.ai custom connectors
+cannot sign in. Set `PLANE_MCP_OAUTH_MODE=api_key` and the server becomes its own
+authorization server instead:
+
+1. `/http/authorize` sends the browser to this server's sign-in page
+   (`/http/plane-login`), which asks for a Plane personal access token and the
+   workspace slug.
+2. The key is checked against `/api/v1/users/me/` and the workspace's project
+   list, then the client receives this server's own access and refresh tokens.
+3. Each MCP request maps its access token back to the Plane key.
+
+The key never appears in a URL or a client config, is stored Fernet-encrypted,
+and is re-checked against Plane at every token refresh, so revoking it in Plane
+ends the connection within an hour. The connector URL stays
+`https://<host>/http/mcp`; the header endpoint `/http/api-key/mcp` is unchanged.
+
+| Variable | Purpose |
+|---|---|
+| `PLANE_MCP_OAUTH_MODE` | `plane` (default) or `api_key` |
+| `PLANE_MCP_AUTH_SECRET` | Required in `api_key` mode: 32+ random characters; encrypts stored keys. Changing it signs everyone out |
+| `PLANE_OAUTH_PROVIDER_BASE_URL` | Public URL of this server, e.g. `https://mcp.example.com` |
+| `PLANE_BASE_URL` | Your Plane URL, e.g. `https://plane.example.com` |
+| `PLANE_MCP_DEFAULT_WORKSPACE` | Optional: slug prefilled on the sign-in page |
+| `PLANE_MCP_ALLOWED_WORKSPACES` | Optional, comma-separated: only these workspaces may connect (one entry locks the field) |
+| `PLANE_MCP_ACCESS_TOKEN_TTL` / `PLANE_MCP_REFRESH_TOKEN_TTL` | Optional, seconds (default 3600 / 7776000) |
+
+Set Redis storage as well (`REDIS_HOST` / `REDIS_PORT`, plus `REDIS_PASSWORD`
+if it needs auth): without it, tokens live in memory and every restart signs all
+users out. `PLANE_OAUTH_PROVIDER_CLIENT_ID` / `_SECRET` are not used in this
+mode.
+
 ### OAuth redirect URIs
 
 The OAuth transports validate each client's redirect URI against an allowlist.
